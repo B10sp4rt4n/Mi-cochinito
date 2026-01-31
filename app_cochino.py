@@ -2,6 +2,14 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
+import os
+
+# Importar módulo de OpenAI (opcional)
+try:
+    from openai_integration import OpenAIAnalyzer, is_openai_available, get_pricing_info
+    OPENAI_MODULE_AVAILABLE = True
+except ImportError:
+    OPENAI_MODULE_AVAILABLE = False
 
 # ==========================================
 # MOTOR DE INTELIGENCIA ARTIFICIAL
@@ -301,9 +309,27 @@ st.set_page_config(layout="wide")
 # Inicializar IA
 ai_engine = SIDEPEIntelligence()
 
+# Inicializar OpenAI en session state
+if 'openai_enabled' not in st.session_state:
+    st.session_state.openai_enabled = False
+if 'openai_analyzer' not in st.session_state:
+    st.session_state.openai_analyzer = None
+if 'chat_history' not in st.session_state:
+    st.session_state.chat_history = []
+
 # Título con indicador de IA
-st.title("🤖 Simulador Inteligente SIDEPE")
-st.markdown("**Sistema de análisis con IA que evalúa ciclos recurrentes y optimiza automáticamente**")
+col_title, col_ai = st.columns([4, 1])
+with col_title:
+    st.title("🤖 Simulador Inteligente SIDEPE")
+    st.markdown("**Sistema de análisis con IA que evalúa ciclos recurrentes y optimiza automáticamente**")
+
+with col_ai:
+    if OPENAI_MODULE_AVAILABLE:
+        st.markdown("### 🔮 IA Avanzada")
+        if st.session_state.openai_enabled:
+            st.success("✅ Conectado")
+        else:
+            st.info("💤 Desactivado")
 
 # Selector de modo
 mode = st.radio(
@@ -314,6 +340,51 @@ mode = st.radio(
 
 # --- BARRA LATERAL CON CONTROLES ---
 st.sidebar.header("Parámetros del Sistema")
+
+# === CONFIGURACIÓN DE OPENAI ===
+if OPENAI_MODULE_AVAILABLE:
+    with st.sidebar.expander("🔮 IA Avanzada (OpenAI)", expanded=False):
+        st.markdown("**Análisis profundo con GPT**")
+        
+        api_key_input = st.text_input(
+            "API Key de OpenAI",
+            type="password",
+            value=os.getenv("OPENAI_API_KEY", ""),
+            help="Obtén tu API key en: https://platform.openai.com/api-keys"
+        )
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("🔌 Conectar"):
+                if api_key_input:
+                    try:
+                        analyzer = OpenAIAnalyzer(api_key=api_key_input)
+                        if analyzer.test_connection():
+                            st.session_state.openai_analyzer = analyzer
+                            st.session_state.openai_enabled = True
+                            st.success("✅ Conectado")
+                        else:
+                            st.error("❌ No se pudo conectar")
+                    except Exception as e:
+                        st.error(f"Error: {str(e)}")
+                else:
+                    st.warning("Ingresa tu API key")
+        
+        with col2:
+            if st.button("🔌 Desconectar"):
+                st.session_state.openai_enabled = False
+                st.session_state.openai_analyzer = None
+                st.info("Desconectado")
+        
+        if st.session_state.openai_enabled:
+            st.success("✅ IA Avanzada activada")
+            st.caption("Costos: ~$0.01-0.03 por análisis")
+        else:
+            st.info("💡 Obtén análisis profundo con GPT")
+            with st.expander("Ver información de precios"):
+                st.markdown(get_pricing_info())
+
+st.sidebar.markdown("---")
 
 # Variables de Participación
 st.sidebar.subheader("1. Participación")
@@ -570,6 +641,152 @@ if fee_dist + nucleus_dist + fic_dist == 100:
                 st.markdown("**Parámetros que la IA recomienda ajustar:**")
                 for key, value in optimizations.items():
                     st.write(f"- {key}: {value}")
+        
+        # ============================================
+        # FUNCIONALIDADES AVANZADAS CON OPENAI
+        # ============================================
+        
+        if st.session_state.openai_enabled and st.session_state.openai_analyzer:
+            st.markdown("---")
+            st.header("🔮 Análisis Avanzado con IA (OpenAI GPT)")
+            
+            tab1, tab2, tab3, tab4 = st.tabs([
+                "📊 Análisis Profundo", 
+                "📄 Generar Reporte", 
+                "💬 Chat Asistente",
+                "🎯 Optimización Personalizada"
+            ])
+            
+            # Tab 1: Análisis Profundo
+            with tab1:
+                st.subheader("Análisis Profundo con GPT")
+                st.markdown("GPT analizará todos los datos y contexto para dar insights que el sistema de reglas no puede detectar.")
+                
+                if st.button("🔍 Analizar con GPT", key="deep_analysis"):
+                    with st.spinner("🤖 Analizando con GPT..."):
+                        # Preparar datos
+                        final_row = df_results.iloc[-1] if not df_results.empty else {}
+                        analysis_data = {
+                            'roi': performance.get('roi', 0),
+                            'health_score': performance.get('health_score', 0),
+                            'final_value': final_row.get('Valor Total del Sistema', 0),
+                            'net_profit': final_row.get('Rendimiento Neto Acumulado', 0),
+                            'profit_per_user': performance.get('profit_per_user', 0)
+                        }
+                        
+                        analysis = st.session_state.openai_analyzer.analyze_deep(analysis_data, params)
+                        st.markdown(analysis)
+                        st.caption("💡 Análisis generado por GPT-4o-mini")
+            
+            # Tab 2: Generar Reporte
+            with tab2:
+                st.subheader("Generador de Reportes Profesionales")
+                
+                report_type = st.selectbox(
+                    "Tipo de reporte:",
+                    ["ejecutivo", "tecnico", "inversionista"],
+                    format_func=lambda x: {
+                        "ejecutivo": "📊 Ejecutivo (CEO/Directores)",
+                        "tecnico": "🔧 Técnico (Operaciones)",
+                        "inversionista": "💰 Inversionista (Pitch)"
+                    }[x]
+                )
+                
+                if st.button("📄 Generar Reporte", key="generate_report"):
+                    with st.spinner("📝 Generando reporte profesional..."):
+                        final_row = df_results.iloc[-1] if not df_results.empty else {}
+                        report_data = {
+                            'roi': performance.get('roi', 0),
+                            'final_value': final_row.get('Valor Total del Sistema', 0),
+                            'net_profit': final_row.get('Rendimiento Neto Acumulado', 0)
+                        }
+                        
+                        report = st.session_state.openai_analyzer.generate_report(
+                            report_data, params, format=report_type
+                        )
+                        st.markdown(report)
+                        
+                        # Botón para descargar
+                        st.download_button(
+                            label="💾 Descargar Reporte (MD)",
+                            data=report,
+                            file_name=f"reporte_sidepe_{report_type}_{datetime.now().strftime('%Y%m%d')}.md",
+                            mime="text/markdown"
+                        )
+            
+            # Tab 3: Chat Asistente
+            with tab3:
+                st.subheader("💬 Chat con Asistente Financiero")
+                st.markdown("Pregunta lo que quieras sobre tu simulación. GPT responderá basándose en tus datos.")
+                
+                # Mostrar historial
+                for i, (question, answer) in enumerate(st.session_state.chat_history):
+                    with st.chat_message("user"):
+                        st.write(question)
+                    with st.chat_message("assistant"):
+                        st.write(answer)
+                
+                # Input de pregunta
+                user_question = st.text_input(
+                    "Tu pregunta:",
+                    placeholder="Ej: ¿Por qué mi ROI es bajo? ¿Cómo puedo duplicar usuarios?"
+                )
+                
+                if st.button("💬 Enviar", key="chat_send") and user_question:
+                    with st.spinner("🤔 GPT está pensando..."):
+                        context = {
+                            'params': params,
+                            'performance': performance,
+                            'recommendations_count': len(recommendations)
+                        }
+                        
+                        answer = st.session_state.openai_analyzer.chat_advisor(user_question, context)
+                        
+                        # Agregar al historial
+                        st.session_state.chat_history.append((user_question, answer))
+                        st.rerun()
+                
+                if st.button("🗑️ Limpiar Chat"):
+                    st.session_state.chat_history = []
+                    st.rerun()
+            
+            # Tab 4: Optimización Personalizada
+            with tab4:
+                st.subheader("🎯 Optimización con Restricciones Personalizadas")
+                st.markdown("Describe tus restricciones y GPT optimizará los parámetros considerándolas.")
+                
+                constraints = st.text_area(
+                    "Describe tus restricciones:",
+                    placeholder="""Ejemplo:
+- Solo puedo tener máximo 150 usuarios (capacidad operativa)
+- Capital inicial: $80,000
+- Equipo de 2 personas
+- No puedo aprobar más de 30 préstamos/mes
+- Clientes: micro-empresarios zona rural""",
+                    height=150
+                )
+                
+                if st.button("🚀 Optimizar con GPT", key="optimize_gpt") and constraints:
+                    with st.spinner("🧮 Optimizando parámetros..."):
+                        optimized_params = st.session_state.openai_analyzer.optimize_with_constraints(
+                            params, constraints
+                        )
+                        
+                        if 'error' not in optimized_params:
+                            st.success("✅ Parámetros optimizados:")
+                            
+                            col1, col2 = st.columns(2)
+                            with col1:
+                                st.markdown("**Parámetros Actuales:**")
+                                st.json(params)
+                            with col2:
+                                st.markdown("**Parámetros Optimizados:**")
+                                st.json(optimized_params)
+                            
+                            st.info("💡 Ajusta los parámetros en la barra lateral y ejecuta una nueva simulación")
+                        else:
+                            st.error(f"Error: {optimized_params['error']}")
+        
     else:
         st.error("No se pudieron generar resultados. Revisa los parámetros.")
 else:
@@ -577,4 +794,13 @@ else:
 
 # Footer con info
 st.markdown("---")
-st.markdown("💡 **Tip**: Usa el modo Auto-Optimizado para que la IA ajuste automáticamente los parámetros hacia el mejor rendimiento.")
+col1, col2 = st.columns(2)
+with col1:
+    st.markdown("💡 **Tip**: Usa el modo Auto-Optimizado para que la IA ajuste automáticamente los parámetros hacia el mejor rendimiento.")
+with col2:
+    if OPENAI_MODULE_AVAILABLE and st.session_state.openai_enabled:
+        st.success("🔮 IA Avanzada: Activada | Análisis profundo disponible")
+    elif OPENAI_MODULE_AVAILABLE:
+        st.info("🔮 IA Avanzada: Disponible | Configura tu API key en la barra lateral")
+    else:
+        st.caption("Sistema de reglas activado (sin OpenAI)")

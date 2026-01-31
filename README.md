@@ -2,7 +2,7 @@
 
 ## Sistema de ahorro colectivo con IA para análisis y optimización automática
 
-[![Tests](https://img.shields.io/badge/tests-passing-brightgreen)]() [![Version](https://img.shields.io/badge/version-2.0-blue)]() [![IA](https://img.shields.io/badge/IA-enabled-purple)]()
+[![Tests](https://img.shields.io/badge/tests-passing-brightgreen)]() [![Version](https://img.shields.io/badge/version-2.1-blue)]() [![IA](https://img.shields.io/badge/IA-enabled-purple)]() [![OpenAI](https://img.shields.io/badge/OpenAI-integrated-green)]()
 
 ---
 
@@ -10,11 +10,13 @@
 
 Un **simulador financiero inteligente** que evalúa la viabilidad y rentabilidad del modelo de ahorro colectivo SIDEPE, con capacidades de:
 
-- 🤖 **Inteligencia Artificial** que analiza y recomienda
-- 🔮 **Predicciones** de ciclos futuros
+- 🤖 **Inteligencia Artificial** que analiza y recomienda (sistema de reglas)
+- 🔮 **OpenAI GPT Integration** para análisis profundo (opcional)
 - ✨ **Auto-optimización** de parámetros
 - 📊 **Dashboard** de salud en tiempo real
 - 🔄 **Simulación multi-ciclo** (3 años)
+- 💬 **Chat Asistente** con GPT
+- 📄 **Generador de reportes** profesionales
 
 **El simulador está VIVO** - no solo muestra números, sino que piensa, analiza y guía tus decisiones.
 
@@ -27,6 +29,12 @@ Un **simulador financiero inteligente** que evalúa la viabilidad y rentabilidad
 git clone https://github.com/B10sp4rt4n/Mi-cochinito.git
 cd Mi-cochinito
 pip install -r requirements.txt
+```
+
+### Configuración OpenAI (Opcional)
+```bash
+cp .env.example .env
+# Edita .env y agrega tu OPENAI_API_KEY
 ```
 
 ### Ejecutar
@@ -44,6 +52,7 @@ Abre tu navegador en: **http://localhost:8501**
 | Documento | Descripción |
 |-----------|-------------|
 | **[GUIA_USO.md](GUIA_USO.md)** | Tutorial completo paso a paso |
+| **[GUIA_OPENAI.md](GUIA_OPENAI.md)** | 🆕 Guía de integración con OpenAI GPT |
 | **[EJEMPLOS_IA.md](EJEMPLOS_IA.md)** | Casos de uso con ejemplos reales |
 | **[RESUMEN_EJECUTIVO.md](RESUMEN_EJECUTIVO.md)** | Visión técnica y de negocio |
 | **[ANTES_DESPUES.md](ANTES_DESPUES.md)** | Comparación de la transformación |
@@ -52,7 +61,7 @@ Abre tu navegador en: **http://localhost:8501**
 
 ## 🌟 Características Principales
 
-### 1. 🤖 Motor de Inteligencia Artificial
+### 1. 🤖 Motor de Inteligencia Artificial (Sistema de Reglas)
 ```python
 class SIDEPEIntelligence:
     ✓ Analiza performance automáticamente
@@ -62,7 +71,19 @@ class SIDEPEIntelligence:
     ✓ Auto-optimiza parámetros
 ```
 
-### 2. 🔄 Tres Modos de Simulación
+### 2. 🔮 Integración con OpenAI GPT (Opcional - Nuevo!)
+```python
+class OpenAIAnalyzer:
+    ✓ Análisis profundo contextual
+    ✓ Genera reportes profesionales
+    ✓ Chat asistente inteligente
+    ✓ Optimización personalizada
+    ✓ Explica métricas de forma educativa
+```
+
+**Costo**: ~$0.01-0.03 USD por análisis | $5 gratis al registrarte
+
+### 3. 🔄 Tres Modos de Simulación
 
 #### 📊 Ciclo Simple (12 meses)
 - Análisis básico de un año
